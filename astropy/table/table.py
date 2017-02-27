@@ -107,6 +107,8 @@ class TableColumns(OrderedDict):
             return OrderedDict.__getitem__(self, item)
         elif isinstance(item, int):
             return self.values()[item]
+        elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
+            return self.values()[item.item()]
         elif isinstance(item, tuple):
             return self.__class__([self[x] for x in item])
         elif isinstance(item, slice):
@@ -859,6 +861,8 @@ class Table(object):
             return self.columns[item]
         elif isinstance(item, (int, np.integer)):
             return self.Row(self, item)
+        elif (isinstance(item, np.ndarray) and item.shape == () and item.dtype.kind == 'i'):
+            return self.Row(self, item.item())
         elif (isinstance(item, (tuple, list)) and item and
               all(isinstance(x, six.string_types) for x in item)):
             bad_names = [x for x in item if x not in self.colnames]
@@ -869,7 +873,7 @@ class Table(object):
             out._groups = groups.TableGroups(out, indices=self.groups._indices,
                                              keys=self.groups._keys)
             return out
-        elif ((isinstance(item, np.ndarray) and len(item) == 0) or
+        elif ((isinstance(item, np.ndarray) and item.size == 0) or
               (isinstance(item, (tuple, list)) and not item)):
             # If item is an empty array/list/tuple then return the table with no rows
             return self._new_from_slice([])
